@@ -16,10 +16,19 @@ struct ContentView: View {
         animation: .default)
     private var items: FetchedResults<Item>
     
+    @FetchRequest(
+        entity: Account_info.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \Account_info.uuid, ascending: false)]
+    )
+    var account_info: FetchedResults<Account_info>
+    
     @State private var isWiggling = false
     @State private var username: String = ""
     @State private var password: String = ""
+    @State private var alertMessage: String = ""
     @State private var showRegisterSheet = false
+    @State private var showAlert = false
+    @State private var currentUser: Account_info? = nil
 
     var body: some View {
 //        NavigationView {
@@ -82,8 +91,24 @@ struct ContentView: View {
                     
                     // 登录按钮
                     Button(action: {
+                        
+                        guard !username.isEmpty, !password.isEmpty else {
+                                alertMessage = "Username and Password can't be empty!"
+                                showAlert = true
+                                return
+                            }
+
                         print("账号：\(username)，密码：\(password)")
-                        // TODO: 在这里处理登录验证逻辑
+                        if let matchedUser = account_info.first(where: {
+                            $0.username == username && $0.password == password
+                        }) {
+                            currentUser = matchedUser
+                            username = ""
+                            password = ""
+                        } else {
+                            showAlert = true
+                            alertMessage = "Wrong Username or Password"
+                        }
                     }) {
                         Text("Confirm")
                             .frame(maxWidth: .infinity)
@@ -92,6 +117,9 @@ struct ContentView: View {
                             .font(.system(.headline, design: .rounded).weight(.bold))
                             .foregroundColor(.white)
                             .cornerRadius(20)
+                    }
+                    .alert(alertMessage, isPresented: $showAlert){
+                        Button("OK", role: .cancel){}
                     }
                     .padding(.horizontal)
                     
@@ -173,6 +201,12 @@ struct RegisterView: View {
 //    )
 //    var todoItems: FetchedResults<UserInfo>
     
+    @FetchRequest(
+        entity: Account_info.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \Account_info.uuid, ascending: false)]
+    )
+    var account_info: FetchedResults<Account_info>
+    
     @State private var newUsername = ""
     @State private var newPassword = ""
 
@@ -181,26 +215,33 @@ struct RegisterView: View {
             VStack(spacing: 20) {
                 TextField("New Username", text: $newUsername)
                     .padding()
-                    .background(Color(.systemGray6))
+                    .background(Color(.secondarySystemBackground))
+                    .foregroundColor(.secondary)
                     .cornerRadius(10)
                     .autocapitalization(.none)
+                    .keyboardType(.asciiCapable)
 
                 SecureField("New Password", text: $newPassword)
                     .padding()
-                    .background(Color(.systemGray6))
+                    .background(Color(.secondarySystemBackground))
+                    .foregroundColor(.secondary)
                     .cornerRadius(10)
+                    .keyboardType(.numberPad)
 
                 Button("Register") {
                     print("注册账号：\(newUsername)，密码：\(newPassword)")
-//                    let user = User(context: viewContext)
-//                    user.username = newUsername
-//                    user.password = newPassword
-//                    do {
-//                        try viewContext.save()
-//                        dismiss()
-//                    } catch {
-//                        print("保存失败：\(error.localizedDescription)")
-//                    }
+                    
+                    let new_account = Account_info(context: viewContext)
+                    new_account.username = newUsername
+                    new_account.password = newPassword
+                    new_account.uuid = UUID()
+                    do {
+                        try viewContext.save()
+                        dismiss()
+                    } catch {
+                        let nsError = error as NSError
+                        fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
