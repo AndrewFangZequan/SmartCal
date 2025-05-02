@@ -28,37 +28,26 @@ struct ContentView: View {
     @State private var alertMessage: String = ""
     @State private var showRegisterSheet = false
     @State private var showAlert = false
-    @State private var currentUser: Account_info? = nil
+    
+    @State private var isLoggedIn = false
+    @State private var loggedInUser: Account_info?
 
     var body: some View {
-//        NavigationView {
-//            List {
-//                ForEach(items) { item in
-//                    NavigationLink {
-//                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-//                    } label: {
-//                        Text(item.timestamp!, formatter: itemFormatter)
-//                    }
-//                }
-//                .onDelete(perform: deleteItems)
-//            }
-//            .toolbar {
-//                ToolbarItem(placement: .navigationBarTrailing) {
-//                    EditButton()
-//                }
-//                ToolbarItem {
-//                    Button(action: addItem) {
-//                        Label("Add Item", systemImage: "plus")
-//                    }
-//                }
-//            }
-//            Text("Select an item")
-//        }
+        NavigationStack {
+            if isLoggedIn, let user = loggedInUser{
+                MainView(user: user)
+            } else {
+                loginContentView
+            }
+        }
+    }
+    
+    private var loginContentView: some View{
         ZStack {
             Image("BackImageLogin")
                 .resizable()
                 .ignoresSafeArea()
-                
+            
             VStack {
                 
                 Spacer()
@@ -90,26 +79,7 @@ struct ContentView: View {
                         .keyboardType(.numberPad)
                     
                     // 登录按钮
-                    Button(action: {
-                        
-                        guard !username.isEmpty, !password.isEmpty else {
-                                alertMessage = "Username and Password can't be empty!"
-                                showAlert = true
-                                return
-                            }
-
-                        print("账号：\(username)，密码：\(password)")
-                        if let matchedUser = account_info.first(where: {
-                            $0.username == username && $0.password == password
-                        }) {
-                            currentUser = matchedUser
-                            username = ""
-                            password = ""
-                        } else {
-                            showAlert = true
-                            alertMessage = "Wrong Username or Password"
-                        }
-                    }) {
+                    Button(action: handleLogin) {
                         Text("Confirm")
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -148,9 +118,34 @@ struct ContentView: View {
                 }
             }
         }
-        
     }
-
+    private func handleLogin() {
+        guard !username.isEmpty, !password.isEmpty else {
+            showAlert(message: "Username and Password can't be empty!")
+            return
+        }
+        
+        if let account = account_info.first(where: {
+            $0.username == username && $0.password == password
+        }) {
+            loggedInUser = account
+            isLoggedIn = true
+            clearFields()
+        } else {
+            showAlert(message: "Wrong Username or Password")
+            clearFields()
+        }
+    }
+    
+    private func showAlert(message: String) {
+        alertMessage = message
+        showAlert = true
+    }
+    
+    private func clearFields() {
+        username = ""
+        password = ""
+    }
     private func addItem() {
         withAnimation {
             let newItem = Item(context: viewContext)
@@ -166,7 +161,6 @@ struct ContentView: View {
             }
         }
     }
-
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             offsets.map { items[$0] }.forEach(viewContext.delete)
