@@ -37,6 +37,10 @@ struct GameView: View {
     
     @StateObject private var audioPlayer = AudioPlayer()
     
+    @State private var batchUUID = UUID()
+    @State private var batchDate = Date()
+    
+    
     init(level: Level, user: Account_info) {
         self.level = level
         self.user = user
@@ -57,6 +61,33 @@ struct GameView: View {
                     isActive = false
                     audioPlayer.stopBackgroundMusic()
                 }
+        }
+        .onDisappear{
+            saveQuestionsToCoreData()
+        }
+    }
+    
+    private func saveQuestionsToCoreData(){
+        guard viewContext.hasChanges || !problems.isEmpty else {return}
+        
+        for problem in problems {
+            let question = Question(context: viewContext)
+            
+            question.uuid = UUID()
+            question.account = user.uuid
+            question.batch = batchUUID
+            question.time = batchDate
+            question.level = level.name
+            question.question = "\(problem.question) = \(problem.correctAnswer)"
+            question.useranswer = problem.userAnswer
+            question.ifright = (problem.userAnswer == String(problem.correctAnswer))
+        }
+        do {
+            try viewContext.save()
+            print("seccessful")
+        } catch {
+            print("unseccessful")
+            viewContext.rollback()
         }
     }
     
@@ -107,6 +138,7 @@ struct GameView: View {
                     
                     if currentIndex == 29 {
                         // 延迟0.3秒确保键盘收起动画完成
+//                        saveQuestionsToCoreData()
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             dismiss() // 返回上级视图
                         }

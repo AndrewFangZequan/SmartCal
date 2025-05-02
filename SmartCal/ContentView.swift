@@ -67,16 +67,30 @@ struct ContentView: View {
                     
                     // 账号输入框
                     TextField("Username", text: $username)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding(.horizontal)
+                        .textFieldStyle(.plain) // 移除默认样式
+                        .padding(.vertical, 12) // 增加垂直内边距
+                        .padding(.horizontal, 16) // 增加水平内边距
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1) // 自定义边框
+                                .background(Color(.systemBackground)) // 设置背景颜色
+                        )
                         .autocapitalization(.none)
                         .keyboardType(.asciiCapable)
-                    
+                        .padding(.horizontal) // 外边框间距
                     // 密码输入框
                     SecureField("Password", text: $password)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding(.horizontal)
-                        .keyboardType(.numberPad)
+                        .textFieldStyle(.plain) // 移除默认样式
+                        .padding(.vertical, 12) // 增加垂直内边距
+                        .padding(.horizontal, 16) // 增加水平内边距
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1) // 自定义边框
+                                .background(Color(.systemBackground)) // 设置背景颜色
+                        )
+                        .autocapitalization(.none)
+                        .keyboardType(.asciiCapable)
+                        .padding(.horizontal) // 外边框间距
                     
                     // 登录按钮
                     Button(action: handleLogin) {
@@ -223,8 +237,6 @@ struct RegisterView: View {
                     .keyboardType(.numberPad)
 
                 Button("Register") {
-                    print("注册账号：\(newUsername)，密码：\(newPassword)")
-                    
                     let new_account = Account_info(context: viewContext)
                     new_account.username = newUsername
                     new_account.password = newPassword
@@ -237,11 +249,7 @@ struct RegisterView: View {
                         fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
                     }
                 }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.green)
-                .foregroundColor(.white)
-                .cornerRadius(10)
+                .buttonStyle(CustomButtonStyle())
 
                 Spacer()
             }
@@ -264,6 +272,19 @@ struct VisualEffectView: UIViewRepresentable {
         uiView.effect = effect
     }
 }
+
+struct CustomButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.green)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+    }
+}
+
 
 // 实现自动释放键盘
 extension View {
