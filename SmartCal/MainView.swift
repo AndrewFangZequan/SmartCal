@@ -61,6 +61,7 @@ import SwiftUI
 struct MainView: View {
     var user: Account_info
     @State private var navigationPath = NavigationPath() // 使用导航路径管理
+    @Environment(\.managedObjectContext) private var viewContext
     
     let levels = [
         Level(name: "Grade one", image: "Grade1"),
@@ -76,6 +77,7 @@ struct MainView: View {
                 }
             }
             .navigationTitle("SmartCal")
+            .padding(.leading)
             .navigationDestination(for: Level.self) { level in
                 GameView(level: level, user: user)
                     .onDisappear {

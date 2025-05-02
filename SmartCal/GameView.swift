@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 // 题目数据结构
 struct MathProblem {
@@ -25,6 +26,7 @@ struct GameView: View {
     var user: Account_info
     
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var viewContext
     
     @State private var problems: [MathProblem]
     @State private var currentIndex: Int
@@ -32,6 +34,8 @@ struct GameView: View {
     @FocusState private var isInputFocused: Bool
     @State private var showIncompleteAlert = false
     @State private var isActive = true
+    
+    @StateObject private var audioPlayer = AudioPlayer()
     
     init(level: Level, user: Account_info) {
         self.level = level
@@ -46,8 +50,12 @@ struct GameView: View {
                 .resizable()
                 .ignoresSafeArea()
             content
+                .onAppear {
+                    audioPlayer.playBackgroundMusic()
+                }
                 .onDisappear {
                     isActive = false
+                    audioPlayer.stopBackgroundMusic()
                 }
         }
     }
@@ -68,7 +76,7 @@ struct GameView: View {
                 .keyboardType(.numberPad)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .opacity(0.8)
-                .frame(width: 150)
+                .frame(width: 180)
                 .font(.system(size: 20, weight: .bold))
                 .multilineTextAlignment(.center)
                 .focused($isInputFocused)
@@ -258,4 +266,35 @@ struct GameView: View {
         currentIndex = max(currentIndex - 1, 0)
         isInputFocused = true
     }
+}
+
+class AudioPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate {
+    private var player: AVAudioPlayer?
+        
+        func playBackgroundMusic() {
+            guard let url = Bundle.main.url(forResource: "bgm", withExtension: "mp3") else {
+                print("Not Found")
+                return
+            }
+            
+            do {
+                // 配置音频会话
+                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+                try AVAudioSession.sharedInstance().setActive(true)
+                
+                player = try AVAudioPlayer(contentsOf: url)
+                player?.delegate = self
+                player?.numberOfLoops = -1
+                player?.prepareToPlay()
+                player?.play()
+            } catch {
+                print("Fail: \(error.localizedDescription)")
+            }
+        }
+        
+        func stopBackgroundMusic() {
+            player?.stop()
+            player = nil
+            try? AVAudioSession.sharedInstance().setActive(false)
+        }
 }
