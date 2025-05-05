@@ -1,5 +1,7 @@
 # 📱 SmartCal – A Mental Arithmetic App for Kids
 
+> 🌐 [Read this in Chinese 中文版](./README.zh.md)
+
 **SmartCal** is a SwiftUI-based iOS application designed to help children practice mental arithmetic. It features a simple login system, persistent user data using Core Data, and a user-friendly interface suitable for young users.
 
 ---
