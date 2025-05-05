@@ -62,11 +62,11 @@ To build and run the project:
 
 ## 🙌 Credits
 
-Developed by ZEQUAN FANG(Neo).  
-The majority of the app was developed in 48H.   
-For learning and educational purposes.
+Developed by Neo_FANG  
+The majority of the app was developed in 48H   
+For learning and educational purposes
 
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License
